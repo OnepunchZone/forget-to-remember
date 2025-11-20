@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
+			<!--<scope>runtime</scope>-->
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -70,16 +70,17 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- JavaFX для GUI -->
+		<!-- Thymeleaf для веб-UI -->
 		<dependency>
-			<groupId>org.openjfx</groupId>
-			<artifactId>javafx-controls</artifactId>
-			<version>21</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
+
+		<!-- Telegram Bot для уведомлений -->
 		<dependency>
-			<groupId>org.openjfx</groupId>
-			<artifactId>javafx-fxml</artifactId>
-			<version>21</version>
+			<groupId>org.telegram</groupId>
+			<artifactId>telegrambots-spring-boot-starter</artifactId>
+			<version>6.9.0</version>  <!-- Актуальная на 2025 -->
 		</dependency>
 
 		<!-- OkHttp для API мессенджеров -->
