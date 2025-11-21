@@ -11,11 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.sazon.forget_to_remember.dto.user.UserDto;
 import ru.sazon.forget_to_remember.dto.user.UserRegistrationDto;
-import ru.sazon.forget_to_remember.service.UserService;
+
 import ru.sazon.forget_to_remember.model.User;
+import ru.sazon.forget_to_remember.service.UserService;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final UserService userService;
@@ -25,6 +26,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserDto> register(@RequestBody UserRegistrationDto dto) {
         UserDto savedUserDto = userService.createUser(dto);
+
         return ResponseEntity.ok(savedUserDto);
     }
 
@@ -33,6 +35,7 @@ public class AuthController {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
         );
-        return ResponseEntity.ok("Вошел в систему: " + auth.getName() + " с ролью " + auth.getAuthorities());
+
+        return ResponseEntity.ok("Вошел в систему: " + auth.getName() + " с правами " + auth.getAuthorities());
     }
 }
