@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import ru.sazon.forget_to_remember.config.MyUserDetails;
 import ru.sazon.forget_to_remember.dto.GreetingDto;
+import ru.sazon.forget_to_remember.exeption.FileTooLargeException;
 import ru.sazon.forget_to_remember.model.User;
 import ru.sazon.forget_to_remember.service.GreetingService;
 
@@ -46,5 +49,25 @@ public class GreetingController {
     public ResponseEntity<Page<GreetingDto>> getPublic(Pageable pageable) {
 
         return ResponseEntity.ok(greetingService.findPublic(pageable));
+    }
+
+    @PostMapping("/media")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GreetingDto> createWithMedia(
+            @RequestPart("text") String text,
+            @RequestPart(value = "media", required = false) MultipartFile mediaFile,
+            @RequestPart("isPublic") String isPublicStr,
+            Authentication auth) {
+        User currentUser = ((MyUserDetails) auth.getPrincipal()).getUser();
+
+        boolean isPublic = Boolean.parseBoolean(isPublicStr);
+
+        if (mediaFile != null && mediaFile.getSize() > 10 * 1024 * 1024) {
+            throw new FileTooLargeException("Слишком большой файл: максимальный размер 10Мб");
+        }
+
+        GreetingDto dto = greetingService.createGreetingWithMedia(mediaFile, text, isPublic, currentUser);
+
+        return ResponseEntity.ok(dto);
     }
 }

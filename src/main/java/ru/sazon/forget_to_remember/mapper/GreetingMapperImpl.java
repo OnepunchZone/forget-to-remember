@@ -2,6 +2,7 @@ package ru.sazon.forget_to_remember.mapper;
 
 import org.springframework.stereotype.Component;
 import ru.sazon.forget_to_remember.dto.GreetingDto;
+import ru.sazon.forget_to_remember.exeption.EntityNotFoundException;
 import ru.sazon.forget_to_remember.model.Greeting;
 
 @Component
@@ -16,5 +17,23 @@ public class GreetingMapperImpl implements GreetingMapper {
                 greeting.isPublic(),
                 greeting.getLikesCount(),
                 greeting.getOwner().getId());
+    }
+
+    @Override
+    public Greeting toEntity(GreetingDto greetingDto) {
+        Greeting greeting = new Greeting();
+        greeting.setId(greetingDto.id());
+        greeting.setText(greetingDto.text());
+        greeting.setMediaUrl(greetingDto.mediaUrl());
+        greeting.setPublic(greetingDto.isPublic());
+        greeting.setLikesCount(greetingDto.likesCount());
+
+        /*if (greetingDto.ownerId() != null) {
+            User owner = userRepository.findById(greetingDto.ownerId())
+                    .orElseThrow(() -> new EntityNotFoundException("Owner not found with id: " + greetingDto.ownerId()));
+            greeting.setOwner(owner);
+        }*/
+
+        return greeting;
     }
 }

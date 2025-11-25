@@ -6,13 +6,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ru.sazon.forget_to_remember.dto.GreetingDto;
+import ru.sazon.forget_to_remember.exeption.EntityNotFoundException;
 import ru.sazon.forget_to_remember.mapper.GreetingMapper;
 import ru.sazon.forget_to_remember.model.Greeting;
 import ru.sazon.forget_to_remember.model.User;
 import ru.sazon.forget_to_remember.repository.GreetingRepository;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +38,7 @@ public class GreetingServiceImpl implements GreetingService {
         greeting.setPublic(dto.isPublic());
         greeting.setOwner(currentUser);
         Greeting saved = greetingRepository.save(greeting);
+
         return greetingMapper.toDto(saved);
     }
 
@@ -39,6 +47,7 @@ public class GreetingServiceImpl implements GreetingService {
     @Override
     public List<GreetingDto> findByOwner(User owner) {
         List<Greeting> greetings = greetingRepository.findByOwner(owner);
+
         return greetings.stream().map(greetingMapper::toDto).collect(Collectors.toList());
     }
 
@@ -46,6 +55,45 @@ public class GreetingServiceImpl implements GreetingService {
     @Override
     public Page<GreetingDto> findPublic(Pageable pageable) {
         Page<Greeting> greetings = greetingRepository.findAllPublicOrderByLikesDesc(pageable);
+
         return greetings.map(greetingMapper::toDto);
+    }
+
+    @Transactional
+    @Override
+    public GreetingDto createGreetingWithMedia(
+            MultipartFile mediaFile, String text, boolean isPublic, User currentUser
+    )
+    {
+        Greeting greeting = new Greeting();
+        greeting.setText(text);
+        greeting.setPublic(isPublic);
+        greeting.setOwner(currentUser);
+
+        if (mediaFile != null && !mediaFile.isEmpty()) {
+            try {
+                String uploadDir = "uploads/";
+                Files.createDirectories(Paths.get(uploadDir));
+                String fileName = UUID.randomUUID() + "_" + mediaFile.getOriginalFilename();
+                Path filePath = Paths.get(uploadDir + fileName);
+                mediaFile.transferTo(filePath);
+                greeting.setMediaUrl(uploadDir + fileName);
+            } catch (IOException e) {
+                throw new RuntimeException("File upload failed: " + e.getMessage());
+            }
+        }
+
+        Greeting saved = greetingRepository.save(greeting);
+
+        return greetingMapper.toDto(saved);
+    }
+
+    @Transactional(readOnly = true)
+    @EntityGraph(value = "greeting-owner-graph", type = EntityGraph.EntityGraphType.FETCH)
+    public GreetingDto getById(Long id) {
+        Greeting greeting = greetingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Greeting not found with id: " + id));
+
+        return greetingMapper.toDto(greeting);
     }
 }

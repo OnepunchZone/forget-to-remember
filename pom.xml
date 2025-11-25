@@ -88,7 +88,7 @@
 		<dependency>
 			<groupId>org.telegram</groupId>
 			<artifactId>telegrambots-spring-boot-starter</artifactId>
-			<version>6.9.0</version>  <!-- Актуальная на 2025 -->
+			<version>6.9.0</version>
 		</dependency>
 
 		<!-- OkHttp для API мессенджеров -->
