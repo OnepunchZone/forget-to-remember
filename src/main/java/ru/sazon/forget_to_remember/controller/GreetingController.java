@@ -6,7 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,5 +71,21 @@ public class GreetingController {
         GreetingDto dto = greetingService.createGreetingWithMedia(mediaFile, text, isPublic, currentUser);
 
         return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/{id}/like")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GreetingDto> like(@PathVariable Long id) {
+        GreetingDto liked = greetingService.addLike(id);
+
+        return ResponseEntity.ok(liked);
+    }
+
+    @DeleteMapping("/{id}/like")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GreetingDto> unlike(@PathVariable Long id) {
+        GreetingDto unliked = greetingService.removeLike(id);
+
+        return ResponseEntity.ok(unliked);
     }
 }

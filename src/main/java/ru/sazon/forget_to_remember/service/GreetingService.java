@@ -18,4 +18,8 @@ public interface GreetingService {
     Page<GreetingDto> findPublic(Pageable pageable);
 
     GreetingDto createGreetingWithMedia(MultipartFile mediaFile, String text, boolean isPublic, User currentUser);
+
+    GreetingDto addLike(Long greetingId);
+
+    GreetingDto removeLike(Long greetingId);
 }

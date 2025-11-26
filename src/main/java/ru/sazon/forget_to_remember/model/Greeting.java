@@ -32,9 +32,7 @@ import java.util.Set;
 @NamedEntityGraphs({
         @NamedEntityGraph(
                 name = "greeting-owner-graph",
-                attributeNodes = {
-                        @NamedAttributeNode("owner")
-                }
+                attributeNodes = {@NamedAttributeNode("owner")}
         ),
         @NamedEntityGraph(
                 name = "greeting-with-likes-graph",
@@ -45,9 +43,7 @@ import java.util.Set;
                 subgraphs = {
                         @NamedSubgraph(
                                 name = "likedByDetails",
-                                attributeNodes = {
-                                        @NamedAttributeNode("username")  // Детали юзера в лайках
-                                }
+                                attributeNodes = {@NamedAttributeNode("username")}
                         )
                 }
         )
@@ -85,6 +81,12 @@ public class Greeting {
     public void addLike(User user) {
         if (likedBy.add(user)) {
             likesCount++;
+        }
+    }
+
+    public void removeLike(User user) {
+        if (likedBy.remove(user)) {
+            likesCount--;
         }
     }
 }
