@@ -51,6 +51,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(registrationDto.username());
         user.setPassword(passwordEncoder.encode(registrationDto.password()));
         user.setEmail(registrationDto.email());
+        user.setContact(registrationDto.contact());
 
         user.getRoles().add(Role.USER);
         if ("ADMIN".equals(registrationDto.role())) {
