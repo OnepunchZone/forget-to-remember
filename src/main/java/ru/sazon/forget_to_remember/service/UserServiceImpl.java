@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь с id %d не найден".formatted(id)));
+
         return userMapper.toDto(user);
     }
 
@@ -37,6 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> findAllUsers() {
         List<User> users = userRepository.findAll();
+
         return users.stream().map(userMapper::toDto).collect(Collectors.toList());
     }
 
@@ -59,6 +61,46 @@ public class UserServiceImpl implements UserService {
         }
 
         User savedUser = userRepository.save(user);
+
         return userMapper.toDto(savedUser);
+    }
+
+    @Transactional
+    @Override
+    public UserDto updateUser(Long id, UserRegistrationDto updateDto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+
+        if (updateDto.username() != null
+                && !updateDto.username().isEmpty()
+                && !updateDto.username().equals(user.getUsername())) {
+
+            if (userRepository.findByUsername(updateDto.username()).isPresent()) {
+                throw new BusinessLogicException("Username already exists");
+            }
+            user.setUsername(updateDto.username());
+        }
+
+        if (updateDto.email() != null) user.setEmail(updateDto.email());
+
+        if (updateDto.contact() != null) user.setContact(updateDto.contact());
+
+        if (updateDto.role() != null && !updateDto.role().isEmpty()) {
+            user.getRoles().clear();
+            user.getRoles().add(Role.valueOf(updateDto.role()));
+        }
+
+        User saved = userRepository.save(user);
+
+        return userMapper.toDto(saved);
+    }
+
+    @Transactional
+    @Override
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+
+        userRepository.delete(user);
     }
 }

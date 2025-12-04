@@ -1,4 +1,4 @@
-package ru.sazon.forget_to_remember.dto;
+package ru.sazon.forget_to_remember.dto.birthday;
 
 import java.time.LocalDate;
 

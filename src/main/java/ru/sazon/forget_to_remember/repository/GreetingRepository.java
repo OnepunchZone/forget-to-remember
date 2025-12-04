@@ -17,5 +17,5 @@ public interface GreetingRepository extends JpaRepository<Greeting, Long> {
     Page<Greeting> findAllPublicOrderByLikesDesc(Pageable pageable);
 
     @EntityGraph(value = "greeting-owner-graph", type = EntityGraph.EntityGraphType.FETCH)
-    List<Greeting> findByOwner(User owner);
+    Page<Greeting> findByOwner(User owner, Pageable pageable);
 }

@@ -8,7 +8,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ru.sazon.forget_to_remember.dto.GreetingDto;
+import ru.sazon.forget_to_remember.dto.greeting.GreetingCreateDto;
+import ru.sazon.forget_to_remember.dto.greeting.GreetingDto;
+import ru.sazon.forget_to_remember.dto.greeting.GreetingUpdateDto;
 import ru.sazon.forget_to_remember.exeption.EntityNotFoundException;
 import ru.sazon.forget_to_remember.mapper.GreetingMapper;
 import ru.sazon.forget_to_remember.model.Greeting;
@@ -35,7 +37,7 @@ public class GreetingServiceImpl implements GreetingService {
 
     @Transactional
     @Override
-    public GreetingDto createGreeting(GreetingDto dto, User currentUser) {
+    public GreetingDto createGreeting(GreetingCreateDto dto, User currentUser) {
         Greeting greeting = new Greeting();
         greeting.setText(dto.text());
         greeting.setMediaUrl(dto.mediaUrl());
@@ -46,13 +48,37 @@ public class GreetingServiceImpl implements GreetingService {
         return greetingMapper.toDto(saved);
     }
 
+    @Transactional
+    @Override
+    public GreetingDto updateGreeting(Long id, GreetingUpdateDto dto) {
+        Greeting greeting = greetingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Greeting not found with id: " + id));
+
+        greeting.setText(dto.text());
+        greeting.setMediaUrl(dto.mediaUrl());
+        greeting.setPublic(dto.isPublic());
+
+        Greeting saved = greetingRepository.save(greeting);
+
+        return greetingMapper.toDto(saved);
+    }
+
+    @Transactional
+    @Override
+    public void deleteGreeting(Long id) {
+        if (!greetingRepository.existsById(id)) {
+            throw new EntityNotFoundException("Greeting not found with id: " + id);
+        }
+        greetingRepository.deleteById(id);
+    }
+
     @Transactional(readOnly = true)
     @EntityGraph(value = "greeting-owner-graph", type = EntityGraph.EntityGraphType.FETCH)
     @Override
-    public List<GreetingDto> findByOwner(User owner) {
-        List<Greeting> greetings = greetingRepository.findByOwner(owner);
+    public Page<GreetingDto> findByOwner(User owner, Pageable pageable) {
+        Page<Greeting> greetings = greetingRepository.findByOwner(owner, pageable);
 
-        return greetings.stream().map(greetingMapper::toDto).collect(Collectors.toList());
+        return greetings.map(greetingMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -113,6 +139,7 @@ public class GreetingServiceImpl implements GreetingService {
 
         greeting.addLike(currentUser);
         Greeting saved = greetingRepository.save(greeting);
+
         return greetingMapper.toDto(saved);
     }
 
@@ -128,6 +155,7 @@ public class GreetingServiceImpl implements GreetingService {
 
         greeting.removeLike(currentUser);
         Greeting saved = greetingRepository.save(greeting);
+
         return greetingMapper.toDto(saved);
     }
 }

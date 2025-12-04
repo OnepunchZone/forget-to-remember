@@ -20,9 +20,20 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Войти</button>
             </form>
-            <div th:if="${param.error}" class="alert alert-danger mt-3">Неверный логин/пароль</div>
+            <div th:if="${param.registered}" class="alert alert-success mt-3">
+                Регистрация успешна! Теперь вы можете войти в систему.
+            </div>
+            <div th:if="${param.error}" class="alert alert-danger mt-3">
+                Неверный логин/пароль
+            </div>
+            <div th:if="${param.logout}" class="alert alert-info mt-3">
+                Вы успешно вышли из системы
+            </div>
+            <p class="text-center mt-3"><a th:href="@{/register}">Нет аккаунта? Зарегистрироваться</a></p>
         </div>
     </div>
 </div>
+</body>
+</html>
 </body>
 </html>

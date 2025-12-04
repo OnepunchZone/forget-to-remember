@@ -1,7 +1,7 @@
 package ru.sazon.forget_to_remember.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.sazon.forget_to_remember.dto.BirthdayDto;
+import ru.sazon.forget_to_remember.dto.birthday.BirthdayDto;
 import ru.sazon.forget_to_remember.model.Birthday;
 
 @Component

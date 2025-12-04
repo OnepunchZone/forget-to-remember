@@ -1,8 +1,7 @@
 package ru.sazon.forget_to_remember.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.sazon.forget_to_remember.dto.GreetingDto;
-import ru.sazon.forget_to_remember.exeption.EntityNotFoundException;
+import ru.sazon.forget_to_remember.dto.greeting.GreetingDto;
 import ru.sazon.forget_to_remember.model.Greeting;
 
 @Component

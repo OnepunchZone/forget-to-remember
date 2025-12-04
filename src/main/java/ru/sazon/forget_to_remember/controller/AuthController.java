@@ -1,5 +1,6 @@
 package ru.sazon.forget_to_remember.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,7 +25,7 @@ public class AuthController {
     private final AuthenticationManager authManager;
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@RequestBody UserRegistrationDto dto) {
+    public ResponseEntity<UserDto> register(@Valid @RequestBody UserRegistrationDto dto) {
         UserDto savedUserDto = userService.createUser(dto);
 
         return ResponseEntity.ok(savedUserDto);

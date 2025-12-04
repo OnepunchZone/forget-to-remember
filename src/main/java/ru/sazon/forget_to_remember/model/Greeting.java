@@ -60,6 +60,8 @@ public class Greeting {
     @Size(max = 500, message = "Поле media URL должно содержать не более 500 символов")
     private String mediaUrl;
 
+
+
     @Column(nullable = false)
     private boolean isPublic = false;
 
