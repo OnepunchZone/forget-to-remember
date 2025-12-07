@@ -18,4 +18,6 @@ public interface GreetingRepository extends JpaRepository<Greeting, Long> {
 
     @EntityGraph(value = "greeting-owner-graph", type = EntityGraph.EntityGraphType.FETCH)
     Page<Greeting> findByOwner(User owner, Pageable pageable);
+
+    Page<Greeting> findByOwnerAndIsPublic(User owner, boolean isPublic, Pageable pageable);
 }

@@ -95,6 +95,12 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(saved);
     }
 
+    @Override
+    public User findByContact(String contact) {
+        return userRepository.findByContact(contact)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь с contact %s не найден".formatted(contact)));
+    }
+
     @Transactional
     @Override
     public void deleteUser(Long id) {

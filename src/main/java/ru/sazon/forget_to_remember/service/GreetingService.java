@@ -28,4 +28,6 @@ public interface GreetingService {
     GreetingDto updateGreeting(Long id, GreetingUpdateDto dto);
 
     void deleteGreeting(Long id);
+
+    Page<GreetingDto> findByOwnerAndIsPublic(User user, boolean isPublic, Pageable pageable);
 }

@@ -158,4 +158,10 @@ public class GreetingServiceImpl implements GreetingService {
 
         return greetingMapper.toDto(saved);
     }
+
+    @Override
+    public Page<GreetingDto> findByOwnerAndIsPublic(User user, boolean isPublic, Pageable pageable) {
+        Page<Greeting> greetings = greetingRepository.findByOwnerAndIsPublic(user, isPublic, pageable);
+        return greetings.map(greetingMapper::toDto);
+    }
 }

@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @NotNull
     @EntityGraph(attributePaths = {"roles"})
     Optional<User> findById(@NotNull Long id);
+
+    Optional<User> findByContact(String contact);
 }

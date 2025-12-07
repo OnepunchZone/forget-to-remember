@@ -31,6 +31,13 @@ import java.time.LocalDate;
                 attributeNodes = {
                         @NamedAttributeNode("user")
                 }
+        ),
+        @NamedEntityGraph(
+                name = "birthday-user-greeting-graph",
+                attributeNodes = {
+                        @NamedAttributeNode("user"),
+                        @NamedAttributeNode("greeting")
+                }
         )
 })
 public class Birthday {
@@ -52,4 +59,8 @@ public class Birthday {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "greeting_id", nullable = true)
+    private Greeting greeting;
 }

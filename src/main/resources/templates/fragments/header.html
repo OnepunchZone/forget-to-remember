@@ -38,7 +38,7 @@
             <!-- Правые ссылки -->
             <div class="navbar-nav">
                 <span class="navbar-text me-3" sec:authorize="isAuthenticated()">
-                    Привет, <span sec:authentication="name"></span>!
+                    Привет <span th:text="${username}"></span>!
                 </span>
 
                 <div sec:authorize="isAuthenticated()">

@@ -15,5 +15,7 @@ public record BirthdayCreateDto(
         LocalDate date,
 
         @Size(max = 255, message = "Контакт не более 255 символов")
-        String contact
+        String contact,
+
+        Long greetingId
 ) {}

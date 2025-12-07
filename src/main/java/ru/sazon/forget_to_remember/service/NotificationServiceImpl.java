@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.sazon.forget_to_remember.model.Birthday;
+import ru.sazon.forget_to_remember.model.Greeting;
 import ru.sazon.forget_to_remember.model.User;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -15,8 +17,10 @@ import java.util.stream.Collectors;
 public class NotificationServiceImpl implements NotificationService{
     private final TelegramBotService telegramBotService;
 
+    private final KeyboardService keyboardService;
+
     @Override
-    public void sendBirthdayNotification(User user, List<Birthday> birthdays) {
+    public void sendBirthdayNotification(User user, Map<Birthday, Greeting> birthdaysWithGreetings) {
         String chatId = user.getContact();
 
         if (chatId == null || chatId.isEmpty()) {
@@ -24,27 +28,50 @@ public class NotificationServiceImpl implements NotificationService{
             return;
         }
 
-        List<TelegramBotService.BirthdayInfo> birthdayInfos = birthdays.stream()
-                .map(birthday -> new TelegramBotService.BirthdayInfo(
-                        birthday.getName(),
-                        birthday.getContact()
-                ))
-                .collect(Collectors.toList());
+        birthdaysWithGreetings.forEach((birthday, greeting) -> {
+            String message = "🎉 С днем рождения, " + birthday.getName() + "!\n\n";
 
-        telegramBotService.sendBirthdayNotification(chatId, birthdayInfos);
+            if (greeting != null) {
+                message += greeting.getText() + "\n";
+
+                //TODO: Прикрепить медиа
+                /*if (greeting.getMediaUrl() != null && !greeting.getMediaUrl().isEmpty()) {
+                    telegramBotService.sendMedia(
+                            chatId,
+                            message,
+                            greeting.getMediaUrl(),
+                            keyboardService.createBirthdayNotificationKeyboard()
+                    );
+
+                    return;
+                }*/
+            } else {
+                message += "Не забудьте поздравить!";
+            }
+
+            telegramBotService.sendMessageWithKeyboard(
+                    chatId, message, keyboardService.createBirthdayNotificationKeyboard()
+            );
+        });
 
         log.info("Birthday notification processed for user: {}", user.getUsername());
     }
 
+    @Override
     public void sendWelcomeNotification(User user) {
         String chatId = user.getContact();
+
         if (chatId != null && !chatId.isEmpty()) {
-            String welcomeMessage = "👋 Добро пожаловать в *Forget To Remember*!\n\n" +
+            String welcomeMessage = "👋Привет! Я бот этого приложения. \n\n" +
+                    "Добро пожаловать в *Forget To Remember*!\n\n" +
                     "Я буду напоминать тебе о днях рождениях твоих друзей и близких. " +
                     "Ты можешь создавать шаблоны поздравлений и быстро отправлять их!";
 
-            telegramBotService.sendMessageWithKeyboard(chatId, welcomeMessage,
-                    telegramBotService.createMainMenuKeyboard());
+            telegramBotService.sendMessageWithKeyboard(
+                    chatId,
+                    welcomeMessage,
+                    keyboardService.createMainMenuKeyboard()
+            );
         }
     }
 
@@ -65,8 +92,10 @@ public class NotificationServiceImpl implements NotificationService{
 
             reminderMessage.append("\nНе забудь подготовить поздравления! 🎁");
 
-            telegramBotService.sendMessageWithKeyboard(chatId, reminderMessage.toString(),
-                    telegramBotService.createGreetingsKeyboard());
+            telegramBotService.sendMessageWithKeyboard(
+                    chatId,
+                    reminderMessage.toString(),
+                    keyboardService.createBirthdayNotificationKeyboard());
         }
     }
 }

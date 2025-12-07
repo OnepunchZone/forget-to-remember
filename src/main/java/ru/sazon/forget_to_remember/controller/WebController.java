@@ -45,6 +45,7 @@ public class WebController {
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("showHeader", true);
+
         return "home";
     }
 
@@ -79,6 +80,7 @@ public class WebController {
         model.addAttribute("greetingTotalPages", greetingPage.getTotalPages());
         model.addAttribute("greetingHasNext", greetingPage.hasNext());
         model.addAttribute("greetingHasPrevious", greetingPage.hasPrevious());
+        model.addAttribute("username", currentUser.getUsername());
 
         return "dashboard";
     }
@@ -88,8 +90,17 @@ public class WebController {
     public String birthdays(Authentication auth, Model model) {
         User currentUser = ((MyUserDetails) auth.getPrincipal()).getUser();
         List<BirthdayDto> birthdays = birthdayService.findByUser(currentUser);
+
         model.addAttribute("birthdays", birthdays);
-        model.addAttribute("newBirthday", new BirthdayCreateDto("", LocalDate.now(), ""));
+        model.addAttribute("newBirthday", new BirthdayCreateDto("", LocalDate.now(), "", null));
+
+        Page<GreetingDto> myGreetingsPage = greetingService.findByOwner(currentUser, Pageable.unpaged());
+        model.addAttribute("myGreetings", myGreetingsPage.getContent());
+
+        Page<GreetingDto> publicGreetingsPage = greetingService.findPublic(Pageable.unpaged());
+        model.addAttribute("publicGreetings", publicGreetingsPage.getContent());
+
+        model.addAttribute("username", currentUser.getUsername());
 
         return "birthday/list";
     }
@@ -97,9 +108,12 @@ public class WebController {
     @GetMapping("/greetings")
     @PreAuthorize("isAuthenticated()")
     public String publicGreetings(
+            Authentication auth,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Model model) {
+
+        User currentUser = ((MyUserDetails) auth.getPrincipal()).getUser();
 
         Pageable pageable = PageRequest.of(page, size);
         Page<GreetingDto> greetingsPage = greetingService.findPublic(pageable);
@@ -109,6 +123,7 @@ public class WebController {
         model.addAttribute("totalPages", greetingsPage.getTotalPages());
         model.addAttribute("totalItems", greetingsPage.getTotalElements());
         model.addAttribute("newGreeting", new GreetingCreateDto("", "", true));
+        model.addAttribute("username", currentUser.getUsername());
 
         return "greeting/public-list";
     }
@@ -131,6 +146,7 @@ public class WebController {
         model.addAttribute("totalPages", greetingsPage.getTotalPages());
         model.addAttribute("totalItems", greetingsPage.getTotalElements());
         model.addAttribute("newGreeting", new GreetingCreateDto("", "", false));
+        model.addAttribute("username", currentUser.getUsername());
 
         return "greeting/user-list";
     }

@@ -54,7 +54,9 @@ public class BirthdayController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BirthdayDto> update(@PathVariable Long id, @Valid @RequestBody BirthdayUpdateDto dto, Authentication auth) {
-        User currentUser = ((MyUserDetails) auth.getPrincipal()).getUser();
+        if (id == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
         BirthdayDto updated = birthdayService.updateBirthday(id, dto);
 

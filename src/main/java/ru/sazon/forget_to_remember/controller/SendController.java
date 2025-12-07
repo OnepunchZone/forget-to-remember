@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.sazon.forget_to_remember.config.MyUserDetails;
 import ru.sazon.forget_to_remember.mapper.GreetingMapper;
@@ -28,7 +29,11 @@ public class SendController {
 
     @PostMapping("/{greetingId}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> send(@PathVariable Long greetingId, String chatId, Authentication auth) {
+    public ResponseEntity<String> send(
+            @PathVariable Long greetingId,
+            @RequestParam("chatId") String chatId,
+            Authentication auth
+    ) {
         User currentUser = ((MyUserDetails) auth.getPrincipal()).getUser();
         Greeting greeting = greetingMapper.toEntity(greetingService.getById(greetingId));
 

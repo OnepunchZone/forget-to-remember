@@ -6,13 +6,10 @@ import java.util.List;
 
 public interface TelegramBotService {
     void sendMessage(String chatId, String text);
-    void sendMessageWithKeyboard(String chatId, String text, InlineKeyboardMarkup keyboard);
-    void sendBirthdayNotification(String chatId, List<BirthdayInfo> birthdays);
 
-    // Вспомогательные методы для создания клавиатур
-    InlineKeyboardMarkup createGreetingsKeyboard();
-    InlineKeyboardMarkup createMainMenuKeyboard();
-    InlineKeyboardMarkup createPaginationKeyboard(int currentPage, int totalPages, String callbackPrefix);
+    void sendMessageWithKeyboard(String chatId, String text, InlineKeyboardMarkup keyboard);
+
+    void sendBirthdayNotification(String chatId, List<BirthdayInfo> birthdays);
 
     record BirthdayInfo(String name, String contact) {}
 }

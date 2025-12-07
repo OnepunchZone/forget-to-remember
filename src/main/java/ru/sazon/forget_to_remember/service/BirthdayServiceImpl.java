@@ -10,8 +10,10 @@ import ru.sazon.forget_to_remember.dto.birthday.BirthdayUpdateDto;
 import ru.sazon.forget_to_remember.exeption.EntityNotFoundException;
 import ru.sazon.forget_to_remember.mapper.BirthdayMapper;
 import ru.sazon.forget_to_remember.model.Birthday;
+import ru.sazon.forget_to_remember.model.Greeting;
 import ru.sazon.forget_to_remember.model.User;
 import ru.sazon.forget_to_remember.repository.BirthdayRepository;
+import ru.sazon.forget_to_remember.repository.GreetingRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,14 +29,25 @@ public class BirthdayServiceImpl implements BirthdayService {
 
     private final NotificationService notificationService;
 
+    private final GreetingRepository greetingRepository;
+
     @Transactional
     @Override
     public BirthdayDto createBirthday(BirthdayCreateDto dto, User currentUser) {
         Birthday birthday = new Birthday();
+
         birthday.setName(dto.name());
         birthday.setDate(dto.date());
         birthday.setContact(dto.contact());
         birthday.setUser(currentUser);
+
+        if (dto.greetingId() != null) {
+            Greeting greeting = greetingRepository.findById(dto.greetingId())
+                    .orElseThrow(() -> new EntityNotFoundException("Greeting not found: " + dto.greetingId()));
+            birthday.setGreeting(greeting);
+        } else {
+            birthday.setGreeting(null);
+        }
 
         Birthday saved = birthdayRepository.save(birthday);
 
@@ -62,9 +75,21 @@ public class BirthdayServiceImpl implements BirthdayService {
     public BirthdayDto updateBirthday(Long id, BirthdayUpdateDto dto) {
         Birthday birthday = birthdayRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Birthday not found: " + id));
+
         birthday.setName(dto.name());
         birthday.setDate(dto.date());
         birthday.setContact(dto.contact());
+
+        if (dto.greetingId() != null) {
+            Greeting greeting = greetingRepository.findById(dto.greetingId())
+                    .orElseThrow(() -> new EntityNotFoundException("Greeting not found: " + dto.greetingId()));
+
+            birthday.setGreeting(greeting);
+
+        } else if (dto.greetingId() == null && dto.name() == null && dto.date() == null && dto.contact() == null) {
+            birthday.setGreeting(null);
+        }
+
         Birthday saved = birthdayRepository.save(birthday);
 
         return birthdayMapper.toDto(saved);
@@ -90,6 +115,13 @@ public class BirthdayServiceImpl implements BirthdayService {
         Map<User, List<Birthday>> birthdaysByUser = birthdaysToday.stream()
                 .collect(Collectors.groupingBy(Birthday::getUser));
 
-        birthdaysByUser.forEach(notificationService::sendBirthdayNotification);
+        birthdaysByUser.forEach((user, birthdays) -> {
+            Map<Birthday, Greeting> birthdaysWithGreetings = birthdays.stream()
+                    .collect(Collectors.toMap(b -> b, Birthday::getGreeting));
+
+            if (!birthdaysWithGreetings.isEmpty()) {
+                notificationService.sendBirthdayNotification(user, birthdaysWithGreetings);
+            }
+        });
     }
 }
