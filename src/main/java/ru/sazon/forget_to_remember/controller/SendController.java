@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.sazon.forget_to_remember.bot.BotSender;
 import ru.sazon.forget_to_remember.config.MyUserDetails;
 import ru.sazon.forget_to_remember.mapper.GreetingMapper;
 import ru.sazon.forget_to_remember.model.Greeting;
@@ -27,6 +28,8 @@ public class SendController {
 
     private final GreetingMapper greetingMapper;
 
+    private final BotSender bot;
+
     @PostMapping("/{greetingId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> send(
@@ -41,7 +44,7 @@ public class SendController {
             return ResponseEntity.badRequest().body("Not authorized");
         }
 
-        sendService.sendGreeting(greeting, chatId);
+        sendService.sendGreeting(greeting, chatId, false, bot);
 
         return ResponseEntity.ok("Sent to " + chatId);
     }

@@ -18,4 +18,6 @@ public interface BirthdayService {
     BirthdayDto updateBirthday(Long id, BirthdayUpdateDto dto);
 
     void deleteBirthday(Long id);
+
+    BirthdayDto getBirthdayById(Long id);
 }

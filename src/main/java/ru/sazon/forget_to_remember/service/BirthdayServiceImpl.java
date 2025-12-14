@@ -1,7 +1,6 @@
 package ru.sazon.forget_to_remember.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.sazon.forget_to_remember.dto.birthday.BirthdayCreateDto;
@@ -17,7 +16,6 @@ import ru.sazon.forget_to_remember.repository.GreetingRepository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,9 +25,31 @@ public class BirthdayServiceImpl implements BirthdayService {
 
     private final BirthdayMapper birthdayMapper;
 
-    private final NotificationService notificationService;
-
     private final GreetingRepository greetingRepository;
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<BirthdayDto> findByUser(User user) {
+        List<Birthday> birthdays = birthdayRepository.findByUser(user);
+
+        return birthdays.stream().map(birthdayMapper::toDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<BirthdayDto> findByDate(LocalDate date) {
+        List<Birthday> birthdays = birthdayRepository.findByDate(date);
+
+        return birthdays.stream().map(birthdayMapper::toDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public BirthdayDto getBirthdayById(Long id) {
+        Birthday birthday = birthdayRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Birthday not found: " + id));
+        return birthdayMapper.toDto(birthday);
+    }
 
     @Transactional
     @Override
@@ -52,22 +72,6 @@ public class BirthdayServiceImpl implements BirthdayService {
         Birthday saved = birthdayRepository.save(birthday);
 
         return birthdayMapper.toDto(saved);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<BirthdayDto> findByUser(User user) {
-        List<Birthday> birthdays = birthdayRepository.findByUser(user);
-
-        return birthdays.stream().map(birthdayMapper::toDto).collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<BirthdayDto> findByDate(LocalDate date) {
-        List<Birthday> birthdays = birthdayRepository.findByDate(date);
-
-        return birthdays.stream().map(birthdayMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional
@@ -102,26 +106,5 @@ public class BirthdayServiceImpl implements BirthdayService {
             throw new EntityNotFoundException("Birthday not found with id: " + id);
         }
         birthdayRepository.deleteById(id);
-    }
-
-    @Scheduled(cron = "0 * * * * ?") // запуск каждую минуту (cron = "0 * * * * ?"), в 9:00 - (cron = "0 0 9 * * ?")
-    @Transactional
-    public void checkBirthdays() {
-        LocalDate today = LocalDate.now();
-        List<Birthday> birthdaysToday = birthdayRepository.findByDate(today);
-
-        if (birthdaysToday.isEmpty()) return;
-
-        Map<User, List<Birthday>> birthdaysByUser = birthdaysToday.stream()
-                .collect(Collectors.groupingBy(Birthday::getUser));
-
-        birthdaysByUser.forEach((user, birthdays) -> {
-            Map<Birthday, Greeting> birthdaysWithGreetings = birthdays.stream()
-                    .collect(Collectors.toMap(b -> b, Birthday::getGreeting));
-
-            if (!birthdaysWithGreetings.isEmpty()) {
-                notificationService.sendBirthdayNotification(user, birthdaysWithGreetings);
-            }
-        });
     }
 }
