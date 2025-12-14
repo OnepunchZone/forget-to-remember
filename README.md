@@ -8,6 +8,6 @@
 - Уведомления и отправка
 
 ## Запуск
-mvn spring-boot:run
-http://localhost:8080 - адрес веб
-@Foreget_to_Remember_Bot - адрес тг бота
+- mvn spring-boot:run
+- http://localhost:8080 - адрес веб
+- @Foreget_to_Remember_Bot - адрес тг бота
