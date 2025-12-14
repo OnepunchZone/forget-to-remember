@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Мои поздравления - Forget to Remember</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container mt-4">
+    <h2><i class="fas fa-user"></i> Мои поздравления</h2>
+
+    <!-- Форма добавления -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Создать новое поздравление</h5>
+        </div>
+        <div class="card-body">
+            <form id="addGreetingForm">
+                <div class="mb-3">
+                    <textarea class="form-control" id="text" name="text"
+                              placeholder="Текст поздравления..." rows="3" required></textarea>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="isPublic" name="isPublic">
+                    <label class="form-check-label" for="isPublic">
+                        Сделать публичным
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Создать поздравление
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список моих поздравлений -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Мои поздравления</h5>
+        </div>
+        <div class="card-body">
+            <div th:if="${greetings.empty}" class="text-center py-4">
+                <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                <p class="text-muted">У вас пока нет созданных поздравлений</p>
+            </div>
+
+            <div class="row" th:unless="${greetings.empty}">
+                <div th:each="greeting : ${greetings}" class="col-md-6 mb-3"
+                     th:data-greeting-id="${greeting.id}"
+                     th:data-greeting-public="${greeting.isPublic}">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <p class="card-text greeting-text" th:text="${greeting.text}"></p>
+                            <span th:if="${greeting.isPublic}" class="badge bg-success">
+                                <i class="fas fa-globe"></i> Публичное
+                            </span>
+                            <span th:unless="${greeting.isPublic}" class="badge bg-secondary">
+                                <i class="fas fa-lock"></i> Приватное
+                            </span>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">
+                                <i class="fas fa-heart text-danger"></i>
+                                <span th:text="${greeting.likesCount}"></span> лайков
+                            </small>
+                            <div class="float-end">
+                                <button class="btn btn-sm btn-warning me-1"
+                                        th:onclick="'editGreeting(' + ${greeting.id} + ')'">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger"
+                                        th:onclick="'deleteGreeting(' + ${greeting.id} + ')'">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Пагинация -->
+    <nav th:if="${totalPages > 1}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/greetings-my(page=${currentPage - 1})}">Назад</a>
+            </li>
+
+            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/greetings-my(page=${i})}" th:text="${i + 1}"></a>
+            </li>
+
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/greetings-my(page=${currentPage + 1})}">Вперед</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!-- окно редактирования -->
+<div class="modal fade" id="editGreetingModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать поздравление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editGreetingForm">
+                    <input type="hidden" id="editGreetingId" name="id">
+                    <div class="mb-3">
+                        <label for="editGreetingText" class="form-label">Текст</label>
+                        <textarea class="form-control" id="editGreetingText" name="text" rows="4" required></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="editIsPublic" name="isPublic">
+                        <label class="form-check-label" for="editIsPublic">
+                            Сделать публичным
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Добавление поздравления
+    document.getElementById('addGreetingForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const dto = {
+            text: document.getElementById('text').value,
+            isPublic: document.getElementById('isPublic').checked
+        };
+
+        fetch('/api/v1/greeting', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dto)
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка при создании поздравления');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    // Редактирование поздравления
+    function editGreeting(id) {
+        console.log("Ищем поздравление с ID:", id);
+
+        const card = document.querySelector(`div[data-greeting-id="${id}"]`);
+        if (!card) {
+            alert('Поздравление не найдено');
+            return;
+        }
+
+        const textElement = card.querySelector('.greeting-text');
+        if (!textElement) {
+            alert('Текст поздравления не найден');
+            return;
+        }
+
+        const text = textElement.textContent;
+
+        const isPublic = card.getAttribute('data-greeting-public') === 'true';
+
+        document.getElementById('editGreetingId').value = id;
+        document.getElementById('editGreetingText').value = text;
+        document.getElementById('editIsPublic').checked = isPublic;
+
+        new bootstrap.Modal(document.getElementById('editGreetingModal')).show();
+    }
+
+    document.getElementById('editGreetingForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const id = document.getElementById('editGreetingId').value;
+        const dto = {
+            text: document.getElementById('editGreetingText').value,
+            isPublic: document.getElementById('editIsPublic').checked
+        };
+
+        console.log("Отправляем запрос на обновление поздравления ID:", id, "DTO:", dto);
+
+        fetch('/api/v1/greeting/' + id, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dto)
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                response.text().then(text => {
+                    alert('Ошибка при обновлении: ' + text);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка сети при обновлении');
+        });
+    });
+
+    // Удаление поздравления
+    function deleteGreeting(id) {
+        if (confirm('Вы уверены, что хотите удалить это поздравление?')) {
+            fetch('/api/v1/greeting/' + id, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Ошибка при удалении');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+</script>
+</body>
+</html>

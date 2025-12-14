@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Админ-панель - Forget to Remember</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Админ-панель: Пользователи</h2>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Contact</th>
+            <th>Роли</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.username}"></td>
+            <td th:text="${user.email}"></td>
+            <td th:text="${user.contact}"></td>
+            <td>
+                <span th:each="role, iterStat : ${user.roles}">
+                    <span th:text="${role}"></span>
+                    <span th:if="${!iterStat.last}">, </span>
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-warning mb-1" th:onclick="'updateUser(' + ${user.id} + ')'">Редактировать</button>
+                <button th:if="${user.id != currentUserId}"
+                        class="btn btn-sm btn-danger mb-1"
+                        th:onclick="'deleteUser(' + ${user.id} + ')'">Удалить</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- окно для редактирования -->
+    <div class="modal fade" id="editModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Редактировать пользователя</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm" th:action="@{/admin/users/{id}/update(id=${updateUserId})}" method="post">
+                        <input type="hidden" id="updateUserId" name="id">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Роль</label>
+                            <select class="form-control" id="role" name="role">
+                                <option value="USER">USER</option>
+                                <option value="ADMIN">ADMIN</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact" class="form-label">Contact</label>
+                            <input type="text" class="form-control" id="contact" name="contact">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    function updateUser(id) {
+        fetch('/admin/users/' + id)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('updateUserId').value = data.id;
+            document.getElementById('username').value = data.username || '';
+            document.getElementById('email').value = data.email || '';
+
+            let role = 'USER';
+            if (data.roles && data.roles.length > 0) {
+                role = data.roles[0];
+            } else if (data.role) {
+                role = data.role;
+            }
+            document.getElementById('role').value = role;
+            document.getElementById('contact').value = data.contact || '';
+
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        })
+        .catch(error => console.error('Error loading user data:', error));
+    }
+
+    function deleteUser(id) {
+        if (confirm('Вы уверены, что хотите удалить этого пользователя?')) {
+            fetch('/admin/users/' + id + '/delete', {
+                method: 'POST'
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Ошибка удаления пользователя');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при удалении пользователя');
+            });
+        }
+    }
+
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const userId = document.getElementById('updateUserId').value;
+
+        fetch('/admin/users/' + userId + '/update', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка обновления');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при обновлении пользователя');
+        });
+    });
+</script>
+</body>
+</html>

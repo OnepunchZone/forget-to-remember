@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Forget to Remember</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark" th:fragment="header">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">
+            <i class="fas fa-birthday-cake"></i> Forget to Remember
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Левые ссылки (для авторизованных) -->
+            <div class="navbar-nav me-auto" sec:authorize="isAuthenticated()">
+                <a class="nav-link" th:href="@{/birthdays}">
+                    <i class="fas fa-calendar-day"></i> Дни рождения
+                </a>
+                <a class="nav-link" th:href="@{/greetings}">
+                    <i class="fas fa-gift"></i> Готовые шаблоны поздравлений
+                </a>
+                <a class="nav-link" th:href="@{/greetings-my}">
+                    <i class="fas fa-user"></i> Мои поздравления
+                </a>
+                <a class="nav-link" th:href="@{/dashboard}">
+                    <i class="fas fa-tachometer-alt"></i> Дашборд
+                </a>
+            </div>
+
+            <!-- Правые ссылки -->
+            <div class="navbar-nav">
+                <span class="navbar-text me-3" sec:authorize="isAuthenticated()">
+                    Привет <span th:text="${username}"></span>!
+                </span>
+
+                <div sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-sign-out-alt"></i> Выйти
+                        </button>
+                    </form>
+                </div>
+
+                <div sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </a>
+                    <a th:href="@{/register}" class="nav-link">
+                        <i class="fas fa-user-plus"></i> Регистрация
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
